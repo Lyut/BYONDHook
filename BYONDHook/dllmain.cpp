@@ -9,18 +9,16 @@
 using namespace std;
 int spoof1, spoof2;
 
-#define IsByondMember_Ordinal MAKEINTRESOURCEA(1440)
+#define IsByondMember_Ordinal MAKEINTRESOURCEA(1450)
 
 extern "C" { __declspec(dllimport) void Init(); }
 
-BOOL WINAPI GetVersionExW_hook(LPOSVERSIONINFOW lpVersionInformation);
 BOOL WINAPI GetVersionExW_hook(LPOSVERSIONINFOW lpVersionInformation)
 {
     lpVersionInformation->dwOSVersionInfoSize = spoof2;
     return TRUE;
 }
 
-BOOL WINAPI GVIA_hook(LPCSTR lpRootPathName, LPSTR lpVolumeNameBuffer, DWORD nVolumeNameSize, LPDWORD lpVolumeSerialNumber, LPDWORD lpMaximumComponentLength, LPDWORD lpFileSystemFlags, LPSTR lpFileSystemNameBuffer, DWORD nFileSystemNameSize);
 BOOL WINAPI GVIA_hook(LPCSTR lpRootPathName, LPSTR lpVolumeNameBuffer, DWORD nVolumeNameSize, LPDWORD lpVolumeSerialNumber, LPDWORD lpMaximumComponentLength, LPDWORD lpFileSystemFlags, LPSTR lpFileSystemNameBuffer, DWORD nFileSystemNameSize)
 {
  
@@ -28,8 +26,7 @@ BOOL WINAPI GVIA_hook(LPCSTR lpRootPathName, LPSTR lpVolumeNameBuffer, DWORD nVo
     return TRUE;
 }
 
-typedef int __stdcall IsByondMember(int* a2);
-int __stdcall IsByondMember_hk(int* a2)
+int __stdcall IsByondMember_hk(INT32* a2)
 {
     return 1;
 }
