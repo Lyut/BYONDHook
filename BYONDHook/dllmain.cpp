@@ -1,109 +1,69 @@
 // dllmain.cpp : Definisce il punto di ingresso per l'applicazione DLL.
-#include "pch.h"
-#include <iostream>
-#include <Windows.h>
-#include <easyhook.h>
+#include "includes.h"
 
-#pragma comment(lib, "EasyHook32.lib")
+extern "C" { __declspec(dllimport) void Main(); }
 
-using namespace std;
-int spoof1, spoof2;
-
-#define IsByondMember_Ordinal MAKEINTRESOURCEA(1450)
-
-extern "C" { __declspec(dllimport) void Init(); }
-
-BOOL WINAPI GetVersionExW_hook(LPOSVERSIONINFOW lpVersionInformation)
-{
-    lpVersionInformation->dwOSVersionInfoSize = spoof2;
-    return TRUE;
-}
-
-BOOL WINAPI GVIA_hook(LPCSTR lpRootPathName, LPSTR lpVolumeNameBuffer, DWORD nVolumeNameSize, LPDWORD lpVolumeSerialNumber, LPDWORD lpMaximumComponentLength, LPDWORD lpFileSystemFlags, LPSTR lpFileSystemNameBuffer, DWORD nFileSystemNameSize)
-{
- 
-    *(DWORD*)lpVolumeSerialNumber = spoof1;
-    return TRUE;
-}
-
-int __stdcall IsByondMember_hk(INT32* a2)
+int __cdecl IsByondMember_hk(int* a1)
 {
     return 1;
 }
 
-void hookVirtual(const char* hkName, void* InEntryPoint, void* InHookProc, void* InCallback, TRACED_HOOK_HANDLE OutHandle) {
-    NTSTATUS result = LhInstallHook(InEntryPoint, InHookProc, InCallback, OutHandle);
-    if (FAILED(result))
-    {
-        wstring s(RtlGetLastErrorString());
-        wcout << "Failed to install hook: ";
-        wcout << s << endl;
-    }
-    else
-    {
-        ULONG ACLEntries[1] = { 0 };
-        LhSetExclusiveACL(ACLEntries, 1, OutHandle);
-        printf("[+] %s hooked!\n", hkName);
-    }
-}
-
-void Init() {
-    DWORD VolumeSerialNumber;
+void Main() {
     AllocConsole();
     freopen("CONIN$", "r", stdin);
     freopen("CONOUT$", "w", stdout);
-    printf("[>] Initializing... \n");
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    std::cout << "BYONDInstantHook for BYOND 514.1566 Build " __DATE__ << " " << __TIME__ << std::endl;
     HMODULE ByondCore = GetModuleHandleA("byondcore.dll");
     printf("[+] ByondCore.dll address: 0x%p\n", ByondCore);
 
-    HOOK_TRACE_INFO hHook = { NULL };
-    hookVirtual("IsByondMember", GetProcAddress(ByondCore, IsByondMember_Ordinal), IsByondMember_hk, NULL, &hHook);
-    
-    printf("[+] IsByondMember address: 0x%p\n", GetProcAddress(ByondCore, IsByondMember_Ordinal));
+    PBYTE pCIDMD5 = (PBYTE)ByondCore + 0x373660;
+    PBYTE pCIDMD52 = (PBYTE)ByondCore + 0x372E6C;
 
-    HMODULE Kernel32 = LoadLibraryA("kernel32.dll");
-    if (!Kernel32)
-        printf("[!] FAILED TO GET KERNEL32 HANDLE\n");
-    printf("[+] Got Kernel32 Handle!\n");
+    if (MH_Initialize() != MH_OK)
+    {
+        std::cout << "[-] Failed to initialize hook management!" << std::endl;
+    }
+    if (MH_CreateHook(GetProcAddress(ByondCore, DungClientIsByondMember), &IsByondMember_hk, NULL) != MH_OK)
+    {
+        std::cout << "Failed to hook DungClient::IsByondMember..." << std::endl;
+    }
+    printf("[+] IsByondMember hooked, address: 0x%p\n", GetProcAddress(ByondCore, DungClientIsByondMember));
 
-    int GetVolumeInformationA_pointer = (int)GetProcAddress(Kernel32, "GetVolumeInformationA");
-    if (!GetVolumeInformationA_pointer)
-        printf("[!] FAILED TO GET POINTER TO GetVolumeInformationA\n");
-    printf("[+] Pointer to GetVolumeInformationA: 0x%p\n", GetVolumeInformationA_pointer);
+    char workingDir[MAX_PATH];
+    GetModuleFileNameA(GetModuleHandle(0), workingDir, sizeof(workingDir));
+    std::string sWorkingDir = workingDir;
+    if (!sWorkingDir.empty()) {
+        sWorkingDir.resize(sWorkingDir.size() - 15); //dreamseeker.exe
+        sWorkingDir.append("cid.ini");
+    }
 
-    int GetVersionExW_pointer = (int)GetProcAddress(Kernel32, "GetVersionExW");
-    if (!GetVersionExW_pointer)
-        printf("[!] FAILED TO GET POINTER TO GetVersionExW\n");
-    printf("[+] Pointer to GetVersionExW: 0x%p\n", GetVersionExW_pointer);
-    
-    GetVolumeInformationA("C:\\", 0, 0, &VolumeSerialNumber, 0, 0, 0, 0);
-    cout << "[+] Current Serial ID: " << VolumeSerialNumber << endl;
+    char spoofMD5[32];
+    GetPrivateProfileStringA("CID", "md5", "172346606e1d24062e891d537e917a90", spoofMD5, 32, sWorkingDir.c_str());
 
-    LPCTSTR path = ("C:\\cid.ini");
-    spoof1 = GetPrivateProfileInt("CID", "GetVolumeInformationA", 696966, path);
-    cout << "[*] Serial ID to spoof: " << spoof1 << endl;
+    printf("[+] Patching CID with %s...\n", spoofMD5);
 
-    HOOK_TRACE_INFO hHook2 = { NULL };
-    hookVirtual("GetVolumeInformationA", GetProcAddress(Kernel32, "GetVolumeInformationA"), GVIA_hook, NULL, &hHook2);
+    DWORD OldProtection;
+    VirtualProtect(pCIDMD5, 32, PAGE_EXECUTE_READWRITE, &OldProtection);
+    VirtualProtect(pCIDMD52, 32, PAGE_EXECUTE_READWRITE, &OldProtection);
+    memcpy(pCIDMD5, spoofMD5, 32);
+    memcpy(pCIDMD52, spoofMD5, 32);
+    VirtualProtect(pCIDMD5, 32, OldProtection, &OldProtection);
+    VirtualProtect(pCIDMD52, 32, OldProtection, &OldProtection);
 
-    spoof2 = GetPrivateProfileInt("CID", "GetVersionExW", 420, path);
-    cout << "[*] Version to spoof: " << spoof2 << endl;
-
-    HOOK_TRACE_INFO hHook3 = { NULL };
-    hookVirtual("GetVersionExW", GetProcAddress(Kernel32, "GetVersionExW"), GetVersionExW_hook, NULL, &hHook3);
-
+    printf("[+] CID Spoofed!");
 }
 
-
-BOOL APIENTRY DllMain(HMODULE hModule,
-    DWORD  ul_reason_for_call,
-    LPVOID lpReserved
-)
+BOOL APIENTRY DllMain( HMODULE hModule,
+                       DWORD  ul_reason_for_call,
+                       LPVOID lpReserved
+                     )
 {
     switch (ul_reason_for_call)
     {
     case DLL_PROCESS_ATTACH:
-        CreateThread(0, 0, (PTHREAD_START_ROUTINE)Init, 0, 0, 0);
+        //DisableThreadLibraryCalls(hModule);
+        CreateThread(0, 0, (LPTHREAD_START_ROUTINE)Main, 0, 0, 0);
     case DLL_THREAD_ATTACH:
     case DLL_THREAD_DETACH:
     case DLL_PROCESS_DETACH:
