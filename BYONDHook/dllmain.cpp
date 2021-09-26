@@ -3,9 +3,55 @@
 
 extern "C" { __declspec(dllimport) void Main(); }
 
-int __cdecl IsByondMember_hk(int* a1)
+int __stdcall IsByondMember_hk(int* a1)
 {
     return 1;
+}
+
+BOOL __stdcall GVEW_hk(LPOSVERSIONINFOW a1)
+{
+    GVEW_o(a1);
+    a1->dwPlatformId = 3;
+
+    return FALSE;
+}
+
+BOOL __stdcall GVIA_hk(LPCSTR a1, LPSTR a2, DWORD a3, LPDWORD a4, LPDWORD a5, LPDWORD a6, LPSTR a7, DWORD a8)
+{    
+    UINT spoofedVolume = GetPrivateProfileIntA("CID", "volume", 7776, "C:\\BYOND\\cid.ini");
+    printf("[!] GVIA called! Spoofing CID to %i...\n", spoofedVolume);
+    *(DWORD*)a4 = spoofedVolume;
+
+    return TRUE;
+}
+
+void* __stdcall ComputeCid_hk(char* a1, size_t a2)
+{
+    printf("[!] ComputeCid called: %s\n", a1);
+
+    //ComputeCid_o(a1, a2);
+    /*char workingDir[MAX_PATH];
+    GetModuleFileNameA(GetModuleHandle(0), workingDir, sizeof(workingDir));
+    std::string sWorkingDir = workingDir;
+    if (!sWorkingDir.empty()) {
+        sWorkingDir.resize(sWorkingDir.size() - 15); //dreamseeker.exe
+        sWorkingDir.append("cida.ini");
+    }
+
+    char spoofMD5[32];
+    GetPrivateProfileStringA("CID", "md5", "172346606e1d24062e891d537e917a90", spoofMD5, 32, sWorkingDir.c_str()); 
+    printf("[+] Patching CID with %s...\n", spoofMD5); 
+
+    DWORD OldProtection;
+    VirtualProtect(pCIDMD5, 32, PAGE_EXECUTE_READWRITE, &OldProtection);
+    VirtualProtect(pCIDMD5unk, 32, PAGE_EXECUTE_READWRITE, &OldProtection);
+    printf("[+] Protection changed...\n");
+    memcpy(pCIDMD5, spoofMD5, 32);
+    memcpy(pCIDMD5unk, spoofMD5, 32);
+    printf("[+] Memory patched...\n");
+    VirtualProtect(pCIDMD5, 32, OldProtection, &OldProtection);
+    VirtualProtect(pCIDMD5unk, 32, OldProtection, &OldProtection);
+    printf("[+] Protection changed back to original\n");*/
 }
 
 void Main() {
@@ -14,11 +60,9 @@ void Main() {
     freopen("CONOUT$", "w", stdout);
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     std::cout << "BYONDInstantHook for BYOND 514.1566 Build " __DATE__ << " " << __TIME__ << std::endl;
-    HMODULE ByondCore = GetModuleHandleA("byondcore.dll");
-    printf("[+] ByondCore.dll address: 0x%p\n", ByondCore);
 
-    PBYTE pCIDMD5 = (PBYTE)ByondCore + 0x373660;
-    PBYTE pCIDMD52 = (PBYTE)ByondCore + 0x372E6C;
+    printf("[+] ByondCore.dll address: 0x%p\n", ByondCore);
+    printf("[+] kernel32.dll address: 0x%p\n", Kernel32Handle);
 
     if (MH_Initialize() != MH_OK)
     {
@@ -29,29 +73,28 @@ void Main() {
         std::cout << "Failed to hook DungClient::IsByondMember..." << std::endl;
     }
     printf("[+] IsByondMember hooked, address: 0x%p\n", GetProcAddress(ByondCore, DungClientIsByondMember));
+  //  if (MH_CreateHook(pComputeCid, &ComputeCid_hk, reinterpret_cast<LPVOID*>(&ComputeCid_o)) != MH_OK)
+  //  {
+   //     std::cout << "Failed to hook ComputeCID function..." << std::endl;
+   // }
+    //printf("[+] ComputeCid function hooked, address: 0x%p\n", pComputeCid);
 
-    char workingDir[MAX_PATH];
-    GetModuleFileNameA(GetModuleHandle(0), workingDir, sizeof(workingDir));
-    std::string sWorkingDir = workingDir;
-    if (!sWorkingDir.empty()) {
-        sWorkingDir.resize(sWorkingDir.size() - 15); //dreamseeker.exe
-        sWorkingDir.append("cid.ini");
+    if (MH_CreateHookApiEx(L"kernel32.dll", "GetVolumeInformationA", GVIA_hk, (LPVOID*)&GVIA_o, NULL) != MH_OK)
+    {
+        std::cout << "Failed to hook Kernel32::GetVolumeInformationA..." << std::endl;
     }
+    printf("[+] GetVolumeInformationA function hooked, address: 0x%p\n", GVIA_o);
 
-    char spoofMD5[32];
-    GetPrivateProfileStringA("CID", "md5", "172346606e1d24062e891d537e917a90", spoofMD5, 32, sWorkingDir.c_str());
+    if (MH_CreateHookApiEx(L"kernel32.dll", "GetVersionExW", GVEW_hk, (LPVOID*)&GVEW_o, NULL) != MH_OK)
+    {
+        std::cout << "Failed to hook Kernel32::GetVersionExW..." << std::endl;
+    }
+    printf("[+] GetVersionExW function hooked, address: 0x%p\n", GVEW_o);
 
-    printf("[+] Patching CID with %s...\n", spoofMD5);
-
-    DWORD OldProtection;
-    VirtualProtect(pCIDMD5, 32, PAGE_EXECUTE_READWRITE, &OldProtection);
-    VirtualProtect(pCIDMD52, 32, PAGE_EXECUTE_READWRITE, &OldProtection);
-    memcpy(pCIDMD5, spoofMD5, 32);
-    memcpy(pCIDMD52, spoofMD5, 32);
-    VirtualProtect(pCIDMD5, 32, OldProtection, &OldProtection);
-    VirtualProtect(pCIDMD52, 32, OldProtection, &OldProtection);
-
-    printf("[+] CID Spoofed!");
+    if (MH_EnableHook(MH_ALL_HOOKS) != MH_OK)
+    {
+        std::cout << "Fatal Error!" << std::endl;
+    }
 }
 
 BOOL APIENTRY DllMain( HMODULE hModule,
@@ -62,7 +105,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
     switch (ul_reason_for_call)
     {
     case DLL_PROCESS_ATTACH:
-        //DisableThreadLibraryCalls(hModule);
+        DisableThreadLibraryCalls(hModule);
         CreateThread(0, 0, (LPTHREAD_START_ROUTINE)Main, 0, 0, 0);
     case DLL_THREAD_ATTACH:
     case DLL_THREAD_DETACH:
