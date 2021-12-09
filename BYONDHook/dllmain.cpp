@@ -20,6 +20,7 @@ BOOL __stdcall GVIA_hk(LPCSTR a1, LPSTR a2, DWORD a3, LPDWORD a4, LPDWORD a5, LP
 {    
     UINT spoofedVolume = GetPrivateProfileIntA("CID", "volume", 7776, "C:\\BYOND\\cid.ini");
     printf("[!] GVIA called! Spoofing CID to %i...\n", spoofedVolume);
+    printf("[!] Logging in as %s...\n", GetCurrentLoginKey());
     *(DWORD*)a4 = spoofedVolume;
 
     return TRUE;
@@ -56,39 +57,42 @@ void* __stdcall ComputeCid_hk(char* a1, size_t a2)
 
 void Main() {
     AllocConsole();
-    freopen("CONIN$", "r", stdin);
-    freopen("CONOUT$", "w", stdout);
-    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    std::cout << "BYONDInstantHook for BYOND 514.1566 Build " __DATE__ << " " << __TIME__ << std::endl;
-
+    SetConsoleTitleA("ByondInstantHook");
+    freopen_s((FILE**)stdin, "conin$", "r", stdin);
+    freopen_s((FILE**)stdout, "conout$", "w", stdout);
+    std::cout << "BYONDInstantHook build " __DATE__ << " " << __TIME__ << std::endl;
     printf("[+] ByondCore.dll address: 0x%p\n", ByondCore);
     printf("[+] kernel32.dll address: 0x%p\n", Kernel32Handle);
+    printf("=====================ByondLib=====================\n");
+    printf("BYOND %s, version %i.%i for %s\n", GetByondLabel(), GetByondVersion(), GetByondBuild(), GetByondOs());
+    printf("BYOND HUB Path: %s\n", GetByondHubPath());
+    printf("BYONDInstantHook supported version: 514.1571\n");
+    printf("==================================================\n");
 
     if (MH_Initialize() != MH_OK)
     {
         std::cout << "[-] Failed to initialize hook management!" << std::endl;
     }
+
     if (MH_CreateHook(GetProcAddress(ByondCore, DungClientIsByondMember), &IsByondMember_hk, NULL) != MH_OK)
     {
         std::cout << "Failed to hook DungClient::IsByondMember..." << std::endl;
     }
+
     printf("[+] IsByondMember hooked, address: 0x%p\n", GetProcAddress(ByondCore, DungClientIsByondMember));
-  //  if (MH_CreateHook(pComputeCid, &ComputeCid_hk, reinterpret_cast<LPVOID*>(&ComputeCid_o)) != MH_OK)
-  //  {
-   //     std::cout << "Failed to hook ComputeCID function..." << std::endl;
-   // }
-    //printf("[+] ComputeCid function hooked, address: 0x%p\n", pComputeCid);
 
     if (MH_CreateHookApiEx(L"kernel32.dll", "GetVolumeInformationA", GVIA_hk, (LPVOID*)&GVIA_o, NULL) != MH_OK)
     {
         std::cout << "Failed to hook Kernel32::GetVolumeInformationA..." << std::endl;
     }
+
     printf("[+] GetVolumeInformationA function hooked, address: 0x%p\n", GVIA_o);
 
     if (MH_CreateHookApiEx(L"kernel32.dll", "GetVersionExW", GVEW_hk, (LPVOID*)&GVEW_o, NULL) != MH_OK)
     {
         std::cout << "Failed to hook Kernel32::GetVersionExW..." << std::endl;
     }
+
     printf("[+] GetVersionExW function hooked, address: 0x%p\n", GVEW_o);
 
     if (MH_EnableHook(MH_ALL_HOOKS) != MH_OK)
