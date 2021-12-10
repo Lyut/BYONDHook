@@ -6,4 +6,4 @@ Requires EasyHook.
 
 A library that can be injected into DreamSeeker in order to bypass computer serial ID profiling, spoofing your ID. Also allows you to skip adverts.
 
-<img src="https://i.imgur.com/cVDImYC.png">
+<img src="https://i.imgur.com/99ydeHc.png">
