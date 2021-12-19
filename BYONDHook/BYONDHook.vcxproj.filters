@@ -18,10 +18,18 @@
     <ClInclude Include="includes.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="BYONDHook.rc">
+      <Filter>File di risorse</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

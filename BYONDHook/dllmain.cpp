@@ -72,10 +72,10 @@ void __fastcall hkCommandEvent(void* This, void* _EDX, unsigned char a, unsigned
     char* commandString = new char[dwCommandLength - 1];
     commandString = (char*)dwCommandPtr;
 
-    if (true)
+    if (true && commandString)
     {
         DWORD lastError = GetLastError();
-        std::cout << "((byond::commandevent))" << commandString << std::endl;
+        printf("((byond::commandevent)): %s", commandString);
     }
 
     return oCommandEvent(This, a, b, c);
@@ -96,7 +96,7 @@ BOOL __stdcall GVEW_hk(LPOSVERSIONINFOW a1)
 
 BOOL __stdcall GVIA_hk(LPCSTR a1, LPSTR a2, DWORD a3, LPDWORD a4, LPDWORD a5, LPDWORD a6, LPSTR a7, DWORD a8)
 {    
-    UINT spoofedVolume = GetPrivateProfileIntA("CID", "volume", 7776, "C:\\BYOND\\cid.ini");
+    UINT spoofedVolume = GetPrivateProfileIntA("CID", "volume", 95345, "C:\\BYOND\\cid.ini");
     printf("[!] GVIA called! Spoofing CID to %i...\n", spoofedVolume);
     //printf("[!] Logging in as %s...\n", GetCurrentLoginKey());
     *(DWORD*)a4 = spoofedVolume;
@@ -144,7 +144,7 @@ void Main() {
     printf("=====================ByondLib=====================\n");
     printf("BYOND %s, version %i.%i for %s\n", GetByondLabel(), GetByondVersion(), GetByondBuild(), GetByondOs());
     printf("BYOND HUB Path: %s\n", GetByondHubPath());
-    printf("BYONDInstantHook supported version: 514.1571\n");
+    printf("BYONDInstantHook supported version: 514.1572\n");
     printf("==================================================\n");
 
     if (MH_Initialize() != MH_OK)
