@@ -75,7 +75,7 @@ void __fastcall hkCommandEvent(void* This, void* _EDX, unsigned char a, unsigned
     if (true && commandString)
     {
         DWORD lastError = GetLastError();
-        printf("((byond::commandevent)): %s", commandString);
+        printf("((byond::commandevent)): %s\n", commandString);
     }
 
     return oCommandEvent(This, a, b, c);
