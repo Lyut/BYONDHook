@@ -72,10 +72,11 @@ void __fastcall hkCommandEvent(void* This, void* _EDX, unsigned char a, unsigned
     char* commandString = new char[dwCommandLength - 1];
     commandString = (char*)dwCommandPtr;
 
-    if (true && commandString)
+    if (true && commandString && commandString != NULL)
     {
         DWORD lastError = GetLastError();
-        printf("((byond::commandevent)): %s\n", commandString);
+        printf("((byond::commandevent)): ");
+        std::cout << std::string(commandString) << std::endl;
     }
 
     return oCommandEvent(This, a, b, c);
@@ -144,7 +145,7 @@ void Main() {
     printf("=====================ByondLib=====================\n");
     printf("BYOND %s, version %i.%i for %s\n", GetByondLabel(), GetByondVersion(), GetByondBuild(), GetByondOs());
     printf("BYOND HUB Path: %s\n", GetByondHubPath());
-    printf("BYONDInstantHook supported version: 514.1572\n");
+    printf("BYONDInstantHook supported version: 514.1583\n");
     printf("==================================================\n");
 
     if (MH_Initialize() != MH_OK)

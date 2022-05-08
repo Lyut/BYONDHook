@@ -4,7 +4,8 @@ void patch(char* ds) {
     PEFile pe(ds);
     std::string strDsPath = ds;
     strDsPath += ".bak";
-    std::filesystem::copy(ds, strDsPath);
+    if (!std::filesystem::exists(strDsPath))
+        std::filesystem::copy(ds, strDsPath);
     printf("Input file: %s\nPatching...\n", ds);
     char* functions[] = { (char*)"Main" };
     if (!std::filesystem::exists("C:\\BYOND\\BYONDHook.dll")) {
@@ -15,7 +16,7 @@ void patch(char* ds) {
     pe.addSection((char*)".dspatch", 0x1000, false);
     if (pe.saveToFile(ds))
     {
-        printf("Patched!\nDelete backup dreamseeker.exe? (y/n)\n");
+        printf("Patched!\nDelete backup dreamseeker.exe.bak? (y/n)\n");
         char choice;
         std::cin >> choice;
         if (!(choice != 'Y' && choice != 'y')) {
@@ -23,7 +24,7 @@ void patch(char* ds) {
                 if (std::filesystem::remove(strDsPath))
                     printf("Done. Enjoy!\n");
                 else
-                    printf("Error removing dreamseeker.bak!\n");
+                    printf("Error removing dreamseeker.bak! %s\n", GetLastError());
             }
             catch (const std::filesystem::filesystem_error& err) {
                 printf("Error: %s\n", err.what());
@@ -31,7 +32,7 @@ void patch(char* ds) {
         }
     }
     else
-        printf("Error: couldn't save to file!\n");
+        printf("Error: couldn't save to file! %s\n", GetLastError());
     return;
 }
 
