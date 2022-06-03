@@ -31,7 +31,7 @@ void __fastcall hkToHtml(void* This, void* _EDX, const char* a2)
         {
             strTmp.erase(pos-1, std::string("</span>").length()+1);
         }
-        printf("[BYOND] %s\n", strTmp);
+        printf_s("[BYOND] %s\n", strTmp);
     }
     else if (a2[21] == char(67) && a2[30] == char(103)) {
         std::string strTmp = a2;
@@ -46,7 +46,7 @@ void __fastcall hkToHtml(void* This, void* _EDX, const char* a2)
         {
             strTmp.erase(pos, std::string("</span>").length());
         }
-        printf("[BYOND] %s\n", strTmp);
+        printf_s("[BYOND] %s\n", strTmp);
     }
         return oToHtml(This, a2);
 }
@@ -59,7 +59,7 @@ void __fastcall hkCommandEvent(void* This, void* _EDX, unsigned char a, unsigned
     __asm
     {
         push eax
-        mov eax, esi
+        mov eax, ebx
         mov dwCommandPtr, eax
         mov eax, edx
         mov dwCommandLength, eax
@@ -69,14 +69,14 @@ void __fastcall hkCommandEvent(void* This, void* _EDX, unsigned char a, unsigned
     if (dwCommandLength > 1000)
         return oCommandEvent(This, a, b, c);
 
-    char* commandString = new char[dwCommandLength - 1];
+    char* commandString = new char[dwCommandLength];
     commandString = (char*)dwCommandPtr;
+    std::string strCmdString(commandString);
 
     if (true && commandString && commandString != NULL)
     {
         DWORD lastError = GetLastError();
-        printf("((byond::commandevent)): ");
-        std::cout << std::string(commandString) << std::endl;
+        printf_s("[DungClient::CommandEvent]: %s\n", strCmdString);
     }
 
     return oCommandEvent(This, a, b, c);
@@ -145,7 +145,7 @@ void Main() {
     printf("=====================ByondLib=====================\n");
     printf("BYOND %s, version %i.%i for %s\n", GetByondLabel(), GetByondVersion(), GetByondBuild(), GetByondOs());
     printf("BYOND HUB Path: %s\n", GetByondHubPath());
-    printf("BYONDInstantHook supported version: 514.1583\n");
+    printf("BYONDInstantHook supported version: 514.1584\n");
     printf("==================================================\n");
 
     if (MH_Initialize() != MH_OK)
