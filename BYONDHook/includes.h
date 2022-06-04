@@ -15,6 +15,8 @@ DungClient::IsByondMember(long *)	10078AA0	1652
 DungPager::IsByondMember(long *)	1024F270	1653
 */
 
+#define ByondHookIniFile "C:\\BYOND\\cid.ini"
+
 #define DMTextPrinterBeep "?Beep@DMTextPrinter@@UAEXXZ"
 #define DMTextPrinterToHtml "?ToHtml@DMTextPrinter@@QAEPADPBD@Z"
 #define DungClientIsByondMember "?IsByondMember@DungClient@@QAE_NPAJ@Z"
@@ -71,8 +73,4 @@ typedef void(__thiscall* CommandEvent)(void*, unsigned char, unsigned short, uns
 static CommandEvent oCommandEvent;
 void __fastcall hkCommandEvent(void* This, void* _EDX, unsigned char a, unsigned short b, unsigned char c);
 
-PBYTE pCIDMD5 = (PBYTE)ByondCore + 0x373660;
-PBYTE pCIDMD5unk = (PBYTE)ByondCore + 0x372E6C;
-PBYTE pComputeCid = (PBYTE)ByondCore + 0x228D40;
-PBYTE pUnkFunc = (PBYTE)ByondCore + 0x229AB0;
 void* DungClient;

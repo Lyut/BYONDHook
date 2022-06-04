@@ -74,11 +74,9 @@ void __fastcall hkCommandEvent(void* This, void* _EDX, unsigned char a, unsigned
 
     char* commandString = new char[dwCommandLength - 1];
     commandString = (char*)dwCommandPtr;
-    //std::string strCmdString(commandString);
 
     if (true && commandString && commandString != NULL && commandString != nullptr)
     {
-        //DWORD lastError = GetLastError();
         printf_s("[DungClient::CommandEvent]: %s\n", commandString);
     }
 
@@ -108,42 +106,13 @@ BOOL __stdcall GVIA_hk(LPCSTR a1, LPSTR a2, DWORD a3, LPDWORD a4, LPDWORD a5, LP
     return TRUE;
 }
 
-/*void* __stdcall ComputeCid_hk(char* a1, size_t a2)
-{
-    printf("[!] ComputeCid called: %s\n", a1);
-
-    //ComputeCid_o(a1, a2);
-    /*char workingDir[MAX_PATH];
-    GetModuleFileNameA(GetModuleHandle(0), workingDir, sizeof(workingDir));
-    std::string sWorkingDir = workingDir;
-    if (!sWorkingDir.empty()) {
-        sWorkingDir.resize(sWorkingDir.size() - 15); //dreamseeker.exe
-        sWorkingDir.append("cida.ini");
-    }
-
-    char spoofMD5[32];
-    GetPrivateProfileStringA("CID", "md5", "172346606e1d24062e891d537e917a90", spoofMD5, 32, sWorkingDir.c_str()); 
-    printf("[+] Patching CID with %s...\n", spoofMD5); 
-
-    DWORD OldProtection;
-    VirtualProtect(pCIDMD5, 32, PAGE_EXECUTE_READWRITE, &OldProtection);
-    VirtualProtect(pCIDMD5unk, 32, PAGE_EXECUTE_READWRITE, &OldProtection);
-    printf("[+] Protection changed...\n");
-    memcpy(pCIDMD5, spoofMD5, 32);
-    memcpy(pCIDMD5unk, spoofMD5, 32);
-    printf("[+] Memory patched...\n");
-    VirtualProtect(pCIDMD5, 32, OldProtection, &OldProtection);
-    VirtualProtect(pCIDMD5unk, 32, OldProtection, &OldProtection);
-    printf("[+] Protection changed back to original\n");*/
-//} 
-
 void Main() {
-    UINT ibHookIsByondMember = GetPrivateProfileIntA("Hooks", "IsByondMember", 1, "C:\\BYOND\\cid.ini");
-    UINT ibHookInitClient = GetPrivateProfileIntA("Hooks", "InitClient", 1, "C:\\BYOND\\cid.ini");
-    UINT ibHookToHtml = GetPrivateProfileIntA("Hooks", "ToHtml", 1, "C:\\BYOND\\cid.ini");
-    UINT ibHookGetVolumeInformationA = GetPrivateProfileIntA("Hooks", "GetVolumeInformationA", 1, "C:\\BYOND\\cid.ini");
-    UINT ibHookGetVersionExW = GetPrivateProfileIntA("Hooks", "GetVersionExW", 1, "C:\\BYOND\\cid.ini");
-    UINT ibHookCommandEvent = GetPrivateProfileIntA("Hooks", "CommandEvent", 1, "C:\\BYOND\\cid.ini");
+    UINT ibHookIsByondMember = GetPrivateProfileIntA("Hooks", "IsByondMember", 1, ByondHookIniFile);
+    UINT ibHookInitClient = GetPrivateProfileIntA("Hooks", "InitClient", 1, ByondHookIniFile);
+    UINT ibHookToHtml = GetPrivateProfileIntA("Hooks", "ToHtml", 1, ByondHookIniFile);
+    UINT ibHookGetVolumeInformationA = GetPrivateProfileIntA("Hooks", "GetVolumeInformationA", 1, ByondHookIniFile);
+    UINT ibHookGetVersionExW = GetPrivateProfileIntA("Hooks", "GetVersionExW", 1, ByondHookIniFile);
+    UINT ibHookCommandEvent = GetPrivateProfileIntA("Hooks", "CommandEvent", 1, ByondHookIniFile);
 
     AllocConsole();
     SetConsoleTitleA("ByondInstantHook");
@@ -231,12 +200,6 @@ void Main() {
     }
 
 }
-
-//  if (MH_CreateHook(pComputeCid, &ComputeCid_hk, reinterpret_cast<LPVOID*>(&ComputeCid_o)) != MH_OK)
-//  {
- //     std::cout << "Failed to hook ComputeCID function..." << std::endl;
- // }
-  //printf("[+] ComputeCid function hooked, address: 0x%p\n", pComputeCid);
 
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,

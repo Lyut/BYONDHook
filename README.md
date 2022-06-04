@@ -15,3 +15,6 @@ Then go into your C:\Program Files (x86)\byond\bin directory (or wherever you've
 Enjoy!
 
 <img src="https://i.imgur.com/99ydeHc.png">
+
+## Troubleshooting
+If you're experiencing rare random crashes, please head over to C:\BYOND\cid.ini and change "CommandEvent" to disable CommandEvent hooking.
