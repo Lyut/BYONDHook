@@ -66,17 +66,20 @@ void __fastcall hkCommandEvent(void* This, void* _EDX, unsigned char a, unsigned
         pop eax
     }
 
+    if (!dwCommandLength)
+        return oCommandEvent(This, a, b, c);
+
     if (dwCommandLength > 1000)
         return oCommandEvent(This, a, b, c);
 
-    char* commandString = new char[dwCommandLength];
+    char* commandString = new char[dwCommandLength - 1];
     commandString = (char*)dwCommandPtr;
-    std::string strCmdString(commandString);
+    //std::string strCmdString(commandString);
 
-    if (true && commandString && commandString != NULL)
+    if (true && commandString && commandString != NULL && commandString != nullptr)
     {
-        DWORD lastError = GetLastError();
-        printf_s("[DungClient::CommandEvent]: %s\n", strCmdString);
+        //DWORD lastError = GetLastError();
+        printf_s("[DungClient::CommandEvent]: %s\n", commandString);
     }
 
     return oCommandEvent(This, a, b, c);
@@ -98,7 +101,7 @@ BOOL __stdcall GVEW_hk(LPOSVERSIONINFOW a1)
 BOOL __stdcall GVIA_hk(LPCSTR a1, LPSTR a2, DWORD a3, LPDWORD a4, LPDWORD a5, LPDWORD a6, LPSTR a7, DWORD a8)
 {    
     UINT spoofedVolume = GetPrivateProfileIntA("CID", "volume", 95345, "C:\\BYOND\\cid.ini");
-    printf("[!] GVIA called! Spoofing CID to %i...\n", spoofedVolume);
+    printf_s("[!] GVIA called! Spoofing CID to %i...\n", spoofedVolume);
     //printf("[!] Logging in as %s...\n", GetCurrentLoginKey());
     *(DWORD*)a4 = spoofedVolume;
 
@@ -135,65 +138,96 @@ BOOL __stdcall GVIA_hk(LPCSTR a1, LPSTR a2, DWORD a3, LPDWORD a4, LPDWORD a5, LP
 //} 
 
 void Main() {
+    UINT ibHookIsByondMember = GetPrivateProfileIntA("Hooks", "IsByondMember", 1, "C:\\BYOND\\cid.ini");
+    UINT ibHookInitClient = GetPrivateProfileIntA("Hooks", "InitClient", 1, "C:\\BYOND\\cid.ini");
+    UINT ibHookToHtml = GetPrivateProfileIntA("Hooks", "ToHtml", 1, "C:\\BYOND\\cid.ini");
+    UINT ibHookGetVolumeInformationA = GetPrivateProfileIntA("Hooks", "GetVolumeInformationA", 1, "C:\\BYOND\\cid.ini");
+    UINT ibHookGetVersionExW = GetPrivateProfileIntA("Hooks", "GetVersionExW", 1, "C:\\BYOND\\cid.ini");
+    UINT ibHookCommandEvent = GetPrivateProfileIntA("Hooks", "CommandEvent", 1, "C:\\BYOND\\cid.ini");
+
     AllocConsole();
     SetConsoleTitleA("ByondInstantHook");
     freopen_s((FILE**)stdin, "conin$", "r", stdin);
     freopen_s((FILE**)stdout, "conout$", "w", stdout);
     std::cout << "BYONDInstantHook build " __DATE__ << " " << __TIME__ << std::endl;
-    printf("[+] ByondCore.dll address: 0x%p\n", ByondCore);
-    printf("[+] kernel32.dll address: 0x%p\n", Kernel32Handle);
-    printf("=====================ByondLib=====================\n");
-    printf("BYOND %s, version %i.%i for %s\n", GetByondLabel(), GetByondVersion(), GetByondBuild(), GetByondOs());
-    printf("BYOND HUB Path: %s\n", GetByondHubPath());
-    printf("BYONDInstantHook supported version: 514.1584\n");
-    printf("==================================================\n");
+    printf_s("[+] ByondCore.dll address: 0x%p\n", ByondCore);
+    printf_s("[+] kernel32.dll address: 0x%p\n", Kernel32Handle);
+    printf_s("=====================ByondLib=====================\n");
+    printf_s("BYOND %s, version %i.%i for %s\n", GetByondLabel(), GetByondVersion(), GetByondBuild(), GetByondOs());
+    printf_s("BYOND HUB Path: %s\n", GetByondHubPath());
+    printf_s("BYONDInstantHook supported version: 514.1584\n");
+    printf_s("==================================================\n");
 
     if (MH_Initialize() != MH_OK)
     {
         std::cout << "[-] Failed to initialize hook management!" << std::endl;
-    }
-
-    if (MH_CreateHook(GetProcAddress(ByondCore, DungClientIsByondMember), &IsByondMember_hk, NULL) != MH_OK)
-    {
-        std::cout << "Failed to hook DungClient::IsByondMember..." << std::endl;
-    }
-    printf("[+] IsByondMember hooked, address: 0x%p\n", GetProcAddress(ByondCore, DungClientIsByondMember));
-
-    if (MH_CreateHook(GetProcAddress(ByondCore, DungClientInitClient), hkInitClient, reinterpret_cast<LPVOID*>(&oInitClient)) != MH_OK)
-    {
-        std::cout << "Failed to hook DungClient::InitClient..." << std::endl;
         return;
     }
-    printf("[+] InitClient hooked, address: 0x%p\n", GetProcAddress(ByondCore, DungClientInitClient));
 
-    if (MH_CreateHook(GetProcAddress(ByondCore, DMTextPrinterToHtml), hkToHtml, reinterpret_cast<LPVOID*>(&oToHtml)) != MH_OK)
+    if (ibHookIsByondMember == 1)
     {
-        std::cout << "Failed to hook DMTextPrinter::ToHtml..." << std::endl;
-        return;
+        if (MH_CreateHook(GetProcAddress(ByondCore, DungClientIsByondMember), &IsByondMember_hk, NULL) != MH_OK)
+        {
+            std::cout << "Failed to hook DungClient::IsByondMember..." << std::endl;
+            return;
+        }
+        printf_s("[+] IsByondMember hooked, address: 0x%p\n", GetProcAddress(ByondCore, DungClientIsByondMember));
     }
-    printf("[+] ToHtml hooked, address: 0x%p\n", GetProcAddress(ByondCore, DMTextPrinterToHtml));
 
-    if (MH_CreateHook(GetProcAddress(ByondCore, DungClientCommandEvent), hkCommandEvent, reinterpret_cast<LPVOID*>(&oCommandEvent)) != MH_OK)
+    if (ibHookInitClient == 1)
     {
-        std::cout << "Failed to hook DungClient::CommandEvent..." << std::endl;
+        if (MH_CreateHook(GetProcAddress(ByondCore, DungClientInitClient), hkInitClient, reinterpret_cast<LPVOID*>(&oInitClient)) != MH_OK)
+        {
+            std::cout << "Failed to hook DungClient::InitClient..." << std::endl;
+            return;
+        }
+        printf_s("[+] InitClient hooked, address: 0x%p\n", GetProcAddress(ByondCore, DungClientInitClient));
     }
-    printf("[+] CommandEvent hooked, address: 0x%p\n", GetProcAddress(ByondCore, DungClientCommandEvent));
 
-    if (MH_CreateHookApiEx(L"kernel32.dll", "GetVolumeInformationA", GVIA_hk, (LPVOID*)&GVIA_o, NULL) != MH_OK)
+    if (ibHookToHtml == 1)
     {
-        std::cout << "Failed to hook Kernel32::GetVolumeInformationA..." << std::endl;
+        if (MH_CreateHook(GetProcAddress(ByondCore, DMTextPrinterToHtml), hkToHtml, reinterpret_cast<LPVOID*>(&oToHtml)) != MH_OK)
+        {
+            std::cout << "Failed to hook DMTextPrinter::ToHtml..." << std::endl;
+            return;
+        }
+        printf_s("[+] ToHtml hooked, address: 0x%p\n", GetProcAddress(ByondCore, DMTextPrinterToHtml));
     }
-    printf("[+] GetVolumeInformationA function hooked, address: 0x%p\n", GVIA_o);
 
-    if (MH_CreateHookApiEx(L"kernel32.dll", "GetVersionExW", GVEW_hk, (LPVOID*)&GVEW_o, NULL) != MH_OK)
+    if (ibHookCommandEvent == 1)
     {
-        std::cout << "Failed to hook Kernel32::GetVersionExW..." << std::endl;
+        if (MH_CreateHook(GetProcAddress(ByondCore, DungClientCommandEvent), hkCommandEvent, reinterpret_cast<LPVOID*>(&oCommandEvent)) != MH_OK)
+        {
+            std::cout << "Failed to hook DungClient::CommandEvent..." << std::endl;
+            return;
+        }
+        printf_s("[+] CommandEvent hooked, address: 0x%p\n", GetProcAddress(ByondCore, DungClientCommandEvent));
     }
-    printf("[+] GetVersionExW function hooked, address: 0x%p\n", GVEW_o);
+
+    if (ibHookGetVolumeInformationA == 1)
+    {
+        if (MH_CreateHookApiEx(L"kernel32.dll", "GetVolumeInformationA", GVIA_hk, (LPVOID*)&GVIA_o, NULL) != MH_OK)
+        {
+            std::cout << "Failed to hook Kernel32::GetVolumeInformationA..." << std::endl;
+            return;
+        }
+        printf_s("[+] GetVolumeInformationA function hooked, address: 0x%p\n", GVIA_o);
+    }
+
+    if (ibHookGetVersionExW == 1)
+    {
+        if (MH_CreateHookApiEx(L"kernel32.dll", "GetVersionExW", GVEW_hk, (LPVOID*)&GVEW_o, NULL) != MH_OK)
+        {
+            std::cout << "Failed to hook Kernel32::GetVersionExW..." << std::endl;
+            return;
+        }
+        printf_s("[+] GetVersionExW function hooked, address: 0x%p\n", GVEW_o);
+    }
 
     if (MH_EnableHook(MH_ALL_HOOKS) != MH_OK)
     {
         std::cout << "Fatal Error!" << std::endl;
+        return;
     }
 
 }
