@@ -157,6 +157,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="includes.h" />
+    <ClInclude Include="patternscan.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

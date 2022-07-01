@@ -51,8 +51,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,9,0,0
- PRODUCTVERSION 1,9,0,0
+ FILEVERSION 2,1,0,0
+ PRODUCTVERSION 2,1,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -69,12 +69,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "lyut"
             VALUE "FileDescription", "hooks byond"
-            VALUE "FileVersion", "1.9.0.0"
+            VALUE "FileVersion", "2.1.0.0"
             VALUE "InternalName", "BYONDHook"
             VALUE "LegalCopyright", "machinery comes into the world not as the servant of 'humanity', but as the instrument of those to whom the accumulation of capital gives the ownership of the machines"
             VALUE "OriginalFilename", "BYONDHook.dll"
             VALUE "ProductName", "ByondHook"
-            VALUE "ProductVersion", "1.9.0.0"
+            VALUE "ProductVersion", "2.1.0.0"
         END
     END
     BLOCK "VarFileInfo"

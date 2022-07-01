@@ -9,13 +9,8 @@
 #elif defined _M_IX86
 #pragma comment(lib, "libMinHook-x86-v141-mtd.lib")
 #endif
-/*
-Name								Address		Ordinal
-DungClient::IsByondMember(long *)	10078AA0	1652
-DungPager::IsByondMember(long *)	1024F270	1653
-*/
 
-#define ByondHookIniFile "C:\\BYOND\\cid.ini"
+#define ByondHookIniFile "C:\\BYOND\\config.ini"
 
 #define DMTextPrinterBeep "?Beep@DMTextPrinter@@UAEXXZ"
 #define DMTextPrinterToHtml "?ToHtml@DMTextPrinter@@QAEPADPBD@Z"

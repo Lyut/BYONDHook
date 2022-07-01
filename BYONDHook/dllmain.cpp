@@ -12,6 +12,15 @@ void __fastcall hkInitClient(void* This, void* _EDX)
 
 void __fastcall hkToHtml(void* This, void* _EDX, const char* a2)
 {
+    UINT biLogToHtml = GetPrivateProfileIntA("Settings", "LogToHtml", 0, ByondHookIniFile);
+
+    if (!a2)
+        return oToHtml(This, a2);
+
+    if (biLogToHtml == 1)
+        if (a2 && a2 != nullptr)
+            printf_s("[toHtml] %s\n", a2);
+
     if (a2[21] == char(76) && a2[31] == char(46)) {
         printf("[BYOND] Logging in...\n");
     }
@@ -31,7 +40,7 @@ void __fastcall hkToHtml(void* This, void* _EDX, const char* a2)
         {
             strTmp.erase(pos-1, std::string("</span>").length()+1);
         }
-        printf_s("[BYOND] %s\n", strTmp);
+        printf_s("[BYOND] %s\n", strTmp.c_str());
     }
     else if (a2[21] == char(67) && a2[30] == char(103)) {
         std::string strTmp = a2;
@@ -46,7 +55,7 @@ void __fastcall hkToHtml(void* This, void* _EDX, const char* a2)
         {
             strTmp.erase(pos, std::string("</span>").length());
         }
-        printf_s("[BYOND] %s\n", strTmp);
+        printf_s("[BYOND] %s\n", strTmp.c_str());
     }
         return oToHtml(This, a2);
 }
@@ -75,7 +84,7 @@ void __fastcall hkCommandEvent(void* This, void* _EDX, unsigned char a, unsigned
     char* commandString = new char[dwCommandLength - 1];
     commandString = (char*)dwCommandPtr;
 
-    if (true && commandString && commandString != NULL && commandString != nullptr)
+    if (true && commandString && commandString != nullptr)
     {
         printf_s("[DungClient::CommandEvent]: %s\n", commandString);
     }
@@ -98,15 +107,17 @@ BOOL __stdcall GVEW_hk(LPOSVERSIONINFOW a1)
 
 BOOL __stdcall GVIA_hk(LPCSTR a1, LPSTR a2, DWORD a3, LPDWORD a4, LPDWORD a5, LPDWORD a6, LPSTR a7, DWORD a8)
 {    
-    UINT spoofedVolume = GetPrivateProfileIntA("CID", "volume", 95345, "C:\\BYOND\\cid.ini");
-    printf_s("[!] GVIA called! Spoofing CID to %i...\n", spoofedVolume);
+    UINT iSpoofedVolume = GetPrivateProfileIntA("Settings", "Volume", 94545, ByondHookIniFile);
+    printf_s("[!] GVIA called! Spoofing CID to %i...\n", iSpoofedVolume);
     //printf("[!] Logging in as %s...\n", GetCurrentLoginKey());
-    *(DWORD*)a4 = spoofedVolume;
+    *(DWORD*)a4 = iSpoofedVolume;
 
     return TRUE;
 }
 
 void Main() {
+
+    UINT ibAllocConsole = GetPrivateProfileIntA("Settings", "AllocConsole", 1, ByondHookIniFile);
     UINT ibHookIsByondMember = GetPrivateProfileIntA("Hooks", "IsByondMember", 1, ByondHookIniFile);
     UINT ibHookInitClient = GetPrivateProfileIntA("Hooks", "InitClient", 1, ByondHookIniFile);
     UINT ibHookToHtml = GetPrivateProfileIntA("Hooks", "ToHtml", 1, ByondHookIniFile);
@@ -114,18 +125,20 @@ void Main() {
     UINT ibHookGetVersionExW = GetPrivateProfileIntA("Hooks", "GetVersionExW", 1, ByondHookIniFile);
     UINT ibHookCommandEvent = GetPrivateProfileIntA("Hooks", "CommandEvent", 1, ByondHookIniFile);
 
-    AllocConsole();
-    SetConsoleTitleA("ByondInstantHook");
-    freopen_s((FILE**)stdin, "conin$", "r", stdin);
-    freopen_s((FILE**)stdout, "conout$", "w", stdout);
-    std::cout << "BYONDInstantHook build " __DATE__ << " " << __TIME__ << std::endl;
-    printf_s("[+] ByondCore.dll address: 0x%p\n", ByondCore);
-    printf_s("[+] kernel32.dll address: 0x%p\n", Kernel32Handle);
-    printf_s("=====================ByondLib=====================\n");
-    printf_s("BYOND %s, version %i.%i for %s\n", GetByondLabel(), GetByondVersion(), GetByondBuild(), GetByondOs());
-    printf_s("BYOND HUB Path: %s\n", GetByondHubPath());
-    printf_s("BYONDInstantHook supported version: 514.1584\n");
-    printf_s("==================================================\n");
+    if (ibAllocConsole == 1) {
+        AllocConsole();
+        SetConsoleTitleA("ByondInstantHook");
+        freopen_s((FILE**)stdin, "conin$", "r", stdin);
+        freopen_s((FILE**)stdout, "conout$", "w", stdout);
+        std::cout << "BYONDInstantHook build " __DATE__ << " " << __TIME__ << std::endl;
+        printf_s("[+] ByondCore.dll address: 0x%p\n", ByondCore);
+        printf_s("[+] kernel32.dll address: 0x%p\n", Kernel32Handle);
+        printf_s("=====================ByondLib=====================\n");
+        printf_s("BYOND %s, version %i.%i for %s\n", GetByondLabel(), GetByondVersion(), GetByondBuild(), GetByondOs());
+        printf_s("BYOND HUB Path: %s\n", GetByondHubPath());
+        printf_s("BYONDInstantHook supported version: 514.1584\n");
+        printf_s("==================================================\n");
+    }
 
     if (MH_Initialize() != MH_OK)
     {
