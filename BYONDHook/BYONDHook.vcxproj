@@ -159,6 +159,7 @@
   <ItemGroup>
     <ClInclude Include="includes.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="sigscan.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />

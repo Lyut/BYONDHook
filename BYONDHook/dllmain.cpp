@@ -38,7 +38,7 @@ void __fastcall hkToHtml(void* This, void* _EDX, const char* a2)
         size_t pos = strTmp.find("</span>");
         if (pos != std::string::npos)
         {
-            strTmp.erase(pos - 1, std::string("</span>").length() + 1);
+            strTmp.erase(pos-1, std::string("</span>").length()+1);
         }
         printf_s("[BYOND] %s\n", strTmp.c_str());
     }
@@ -57,7 +57,7 @@ void __fastcall hkToHtml(void* This, void* _EDX, const char* a2)
         }
         printf_s("[BYOND] %s\n", strTmp.c_str());
     }
-    return oToHtml(This, a2);
+        return oToHtml(This, a2);
 }
 
 BOOL __fastcall hkBrowseLink(void* This, void* _EDX, const char* a2)
@@ -128,7 +128,7 @@ BOOL __stdcall GVEW_hk(LPOSVERSIONINFOW a1)
 }
 
 BOOL __stdcall GVIA_hk(LPCSTR a1, LPSTR a2, DWORD a3, LPDWORD a4, LPDWORD a5, LPDWORD a6, LPSTR a7, DWORD a8)
-{
+{    
     UINT iSpoofedVolume = GetPrivateProfileIntA("Settings", "Volume", 94545, ByondHookIniFile);
     printf_s("[!] GVIA called! Spoofing CID to %i...\n", iSpoofedVolume);
     //printf("[!] Logging in as %s...\n", GetCurrentLoginKey());
@@ -172,58 +172,62 @@ void Main() {
 
     if (ibHookIsByondMember == 1)
     {
-        if (MH_CreateHook(GetProcAddress(ByondCore, DungClientIsByondMember) ?
+        lpvoidIsByondMember = GetProcAddress(ByondCore, DungClientIsByondMember) ?
             GetProcAddress(ByondCore, DungClientIsByondMember) :
             (LPVOID)(sigscan::FindPattern("byondcore.dll",
-                "\x55\x8B\xEC\xFF\x75?\xE8????\x83\xC4?\x5D\xC2??\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xE9????\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\x55\x8B\xEC\x83\x3D?????\x74?\x68????\x68????\x6A?\xE8????\x83\xC4?\x56")),
-            &IsByondMember_hk, NULL) != MH_OK)
+                "\x55\x8B\xEC\xFF\x75?\xE8????\x83\xC4?\x5D\xC2??\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xE9????\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\x55\x8B\xEC\x83\x3D?????\x74?\x68????\x68????\x6A?\xE8????\x83\xC4?\x56"));
+
+        if (MH_CreateHook(lpvoidIsByondMember, &IsByondMember_hk, NULL) != MH_OK)
         {
             std::cout << "Failed to hook DungClient::IsByondMember..." << std::endl;
             return;
         }
-        printf_s("[+] byondcore.dll->DungClient::IsByondMember hooked, address: 0x%p\n", GetProcAddress(ByondCore, DungClientIsByondMember));
+        printf_s("[+] byondcore.dll->DungClient::IsByondMember hooked, address: 0x%p => 0x%p\n", lpvoidIsByondMember, IsByondMember_hk);
     }
 
     if (ibHookInitClient == 1)
     {
-        if (MH_CreateHook(GetProcAddress(ByondCore, DungClientInitClient) ?
+        lpvoidInitClient = GetProcAddress(ByondCore, DungClientInitClient) ?
             GetProcAddress(ByondCore, DungClientInitClient) :
             (LPVOID)(sigscan::FindPattern("byondcore.dll",
-                "\xE9????\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\x55\x8B\xEC\xFF\x75?\xE8????\x83\xC4?\x5D\xC2??\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xE9????\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\x55\x8B\xEC\x83\x3D?????\x74?\x68????\x68????\x6A?\xE8????\x83\xC4?\x56")),
-            hkInitClient, reinterpret_cast<LPVOID*>(&oInitClient)) != MH_OK)
+                "\xE9????\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\x55\x8B\xEC\xFF\x75?\xE8????\x83\xC4?\x5D\xC2??\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xE9????\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\x55\x8B\xEC\x83\x3D?????\x74?\x68????\x68????\x6A?\xE8????\x83\xC4?\x56"));
+
+        if (MH_CreateHook(lpvoidInitClient, hkInitClient, reinterpret_cast<LPVOID*>(&oInitClient)) != MH_OK)
         {
             std::cout << "Failed to hook DungClient::InitClient..." << std::endl;
             return;
         }
-        printf_s("[+] byondcore.dll->DungClient::InitClient hooked, address: 0x%p\n", GetProcAddress(ByondCore, DungClientInitClient));
+        printf_s("[+] byondcore.dll->DungClient::InitClient hooked, address: 0x%p => 0x%p\n", lpvoidInitClient, hkInitClient);
     }
-
+    
     if (ibHookToHtml == 1)
     {
-        if (MH_CreateHook(GetProcAddress(ByondCore, DMTextPrinterToHtml) ?
+        lpvoidToHtml = GetProcAddress(ByondCore, DMTextPrinterToHtml) ?
             GetProcAddress(ByondCore, DMTextPrinterToHtml) :
             (LPVOID)(sigscan::FindPattern("byondcore.dll",
-                "\x55\x8B\xEC\x6A?\x68????\x64\xA1????\x50\x83\xEC?\xA1????\x33\xC5\x89\x45?\x53\x56\x57\x50\x8D\x45?\x64\xA3????\x8B\xD9\x89\x5D")),
-            hkToHtml, reinterpret_cast<LPVOID*>(&oToHtml)) != MH_OK)
+                "\x55\x8B\xEC\x6A?\x68????\x64\xA1????\x50\x83\xEC?\xA1????\x33\xC5\x89\x45?\x53\x56\x57\x50\x8D\x45?\x64\xA3????\x8B\xD9\x89\x5D"));
+
+        if (MH_CreateHook(lpvoidToHtml, hkToHtml, reinterpret_cast<LPVOID*>(&oToHtml)) != MH_OK)
         {
             std::cout << "Failed to hook DMTextPrinter::ToHtml..." << std::endl;
             return;
         }
-        printf_s("[+] byondcore.dll->DMTextPrinter::ToHtml hooked, address: 0x%p\n", GetProcAddress(ByondCore, DMTextPrinterToHtml));
+        printf_s("[+] byondcore.dll->DMTextPrinter::ToHtml hooked, address: 0x%p => 0x%p\n", lpvoidToHtml, hkToHtml);
     }
 
     if (ibHookCommandEvent == 1)
     {
-        if (MH_CreateHook(GetProcAddress(ByondCore, DungClientCommandEvent) ?
+        lpvoidCommandEvent = GetProcAddress(ByondCore, DungClientCommandEvent) ?
             GetProcAddress(ByondCore, DungClientCommandEvent) :
             (LPVOID)(sigscan::FindPattern("byondcore.dll",
-                "\x55\x8B\xEC\xFF\x75?\xFF\x75?\xFF\x75?\xE8????\x83\xC4?\x5D\xC2??\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xE9????\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\x55")),
-            hkCommandEvent, reinterpret_cast<LPVOID*>(&oCommandEvent)) != MH_OK)
+                "\x55\x8B\xEC\xFF\x75?\xFF\x75?\xFF\x75?\xE8????\x83\xC4?\x5D\xC2??\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xE9????\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\x55"));
+
+        if (MH_CreateHook(lpvoidCommandEvent, hkCommandEvent, reinterpret_cast<LPVOID*>(&oCommandEvent)) != MH_OK)
         {
             std::cout << "Failed to hook DungClient::CommandEvent..." << std::endl;
             return;
         }
-        printf_s("[+] byondcore.dll->DungClient::CommandEvent hooked, address: 0x%p\n", GetProcAddress(ByondCore, DungClientCommandEvent));
+        printf_s("[+] byondcore.dll->DungClient::CommandEvent hooked, address: 0x%p => 0x%p\n", lpvoidCommandEvent, hkCommandEvent);
     }
 
     if (ibHookGetVolumeInformationA == 1)
@@ -233,7 +237,7 @@ void Main() {
             std::cout << "Failed to hook Kernel32::GetVolumeInformationA..." << std::endl;
             return;
         }
-        printf_s("[+] kernel32.dll->GetVolumeInformationA function hooked, address: 0x%p\n", GVIA_o);
+        printf_s("[+] kernel32.dll->GetVolumeInformationA function hooked, address: 0x%p => 0x%p\n", GetProcAddress(Kernel32Handle, "GetVolumeInformationA"), GVIA_hk);
     }
 
     if (ibHookGetVersionExW == 1)
@@ -243,21 +247,22 @@ void Main() {
             std::cout << "Failed to hook Kernel32::GetVersionExW..." << std::endl;
             return;
         }
-        printf_s("[+] kernel32.dll->GetVersionExW function hooked, address: 0x%p\n", GVEW_o);
+        printf_s("[+] kernel32.dll->GetVersionExW function hooked, address: 0x%p => 0x%p\n", GetProcAddress(Kernel32Handle, "GetVersionExW"), GVEW_hk);
     }
 
     if (ibHookBrowseLink == 1)
     {
-        if (MH_CreateHook(GetProcAddress(ByondWin, ByondWinBrowseLink) ?
+        lpvoidBrowseLink = GetProcAddress(ByondWin, ByondWinBrowseLink) ?
             GetProcAddress(ByondWin, ByondWinBrowseLink) :
             (LPVOID)(sigscan::FindPattern("byondwin.dll",
-                "\x55\x8B\xEC\x6A?\x68????\x64\xA1????\x50\x81\xEC????\xA1????\x33\xC5\x89\x45?\x53\x56\x57\x50\x8D\x45?\x64\xA3????\x89\x8D????\x8B\x45")),
-            hkBrowseLink, reinterpret_cast<LPVOID*>(&oBrowseLink)) != MH_OK)
+                "\x55\x8B\xEC\x6A?\x68????\x64\xA1????\x50\x81\xEC????\xA1????\x33\xC5\x89\x45?\x53\x56\x57\x50\x8D\x45?\x64\xA3????\x89\x8D????\x8B\x45"));
+
+        if (MH_CreateHook(lpvoidBrowseLink, hkBrowseLink, reinterpret_cast<LPVOID*>(&oBrowseLink)) != MH_OK)
         {
             std::cout << "Failed to hook ByondWin::CLink::BrowseLink..." << std::endl;
             return;
         }
-        printf_s("[+] ByondWin.dll->CLink::BrowseLink function hooked, address: 0x%p\n", GVEW_o);
+        printf_s("[+] ByondWin.dll->CLink::BrowseLink function hooked, address: 0x%p => 0x%p\n", lpvoidBrowseLink, hkBrowseLink);
     }
 
     if (MH_EnableHook(MH_ALL_HOOKS) != MH_OK)
@@ -268,10 +273,10 @@ void Main() {
 
 }
 
-BOOL APIENTRY DllMain(HMODULE hModule,
-    DWORD  ul_reason_for_call,
-    LPVOID lpReserved
-)
+BOOL APIENTRY DllMain( HMODULE hModule,
+                       DWORD  ul_reason_for_call,
+                       LPVOID lpReserved
+                     )
 {
     switch (ul_reason_for_call)
     {

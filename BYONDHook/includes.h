@@ -2,6 +2,7 @@
 #include <windows.h>
 #include <iostream>
 #include <string>
+#include "sigscan.h"
 #include "MinHook.h"
 
 #if defined _M_X64
@@ -76,26 +77,4 @@ BOOL __fastcall hkBrowseLink(void* This, void* _EDX, const char* a2);
 
 void* DungClient;
 
-namespace sigscan
-{
-	bool DataCompare(const char* base, const char* pattern)
-	{
-		for (; *pattern; ++base, ++pattern)
-			if (*pattern != '?' && *base != *pattern)
-				return 0;
-
-		return *pattern == 0;
-	}
-	unsigned long FindPatternBase(unsigned long address, unsigned long size, const char* pattern)
-	{
-		for (unsigned long i = 0; i < size; i++)
-			if (DataCompare((const char*)(address + i), pattern))
-				return address + i;
-
-		return NULL;
-	}
-	unsigned long FindPattern(const char* dll, const char* pattern)
-	{
-		return FindPatternBase((unsigned long)GetModuleHandleA(dll), (unsigned long)-1, pattern);
-	}
-};
+LPVOID lpvoidIsByondMember, lpvoidInitClient, lpvoidToHtml, lpvoidCommandEvent, lpvoidBrowseLink;
