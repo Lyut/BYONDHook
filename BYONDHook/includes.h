@@ -24,8 +24,10 @@
 #define ByondLibGetByondLabel "?GetByondLabel@ByondLib@@QAEPBDXZ"
 #define ByondLibGetByondOsStr "?GetByondOsStr@ByondLib@@QAEPBDXZ"
 #define ByondLibGetByondHubPath "?GetByondHubPath@ByondLib@@QAEPBDXZ"
+#define ByondWinBrowseLink "?BrowseLink@CLink@@QAEHPBD@Z"
 
 HMODULE ByondCore = GetModuleHandleA("byondcore.dll");
+HMODULE ByondWin = GetModuleHandleA("byondwin.dll");
 HMODULE Kernel32Handle = GetModuleHandleA("kernel32.dll");
 
 typedef DWORD (__thiscall* GetByondVersionFn)(void);
@@ -68,4 +70,32 @@ typedef void(__thiscall* CommandEvent)(void*, unsigned char, unsigned short, uns
 static CommandEvent oCommandEvent;
 void __fastcall hkCommandEvent(void* This, void* _EDX, unsigned char a, unsigned short b, unsigned char c);
 
+typedef BOOL(__thiscall* BrowseLink)(void*, const char* a2);
+static BrowseLink oBrowseLink;
+BOOL __fastcall hkBrowseLink(void* This, void* _EDX, const char* a2);
+
 void* DungClient;
+
+namespace sigscan
+{
+	bool DataCompare(const char* base, const char* pattern)
+	{
+		for (; *pattern; ++base, ++pattern)
+			if (*pattern != '?' && *base != *pattern)
+				return 0;
+
+		return *pattern == 0;
+	}
+	unsigned long FindPatternBase(unsigned long address, unsigned long size, const char* pattern)
+	{
+		for (unsigned long i = 0; i < size; i++)
+			if (DataCompare((const char*)(address + i), pattern))
+				return address + i;
+
+		return NULL;
+	}
+	unsigned long FindPattern(const char* dll, const char* pattern)
+	{
+		return FindPatternBase((unsigned long)GetModuleHandleA(dll), (unsigned long)-1, pattern);
+	}
+};

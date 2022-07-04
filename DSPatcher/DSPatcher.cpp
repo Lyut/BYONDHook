@@ -45,7 +45,15 @@ int main(int argc, char* argv[])
     }
     else
     {
-        if (std::filesystem::exists("C:\\Program Files (x86)\\byond\\bin\\dreamseeker.exe")) {
+        char val[128];
+        DWORD dataSize = sizeof(val);
+        if (ERROR_SUCCESS == RegGetValueA(HKEY_LOCAL_MACHINE, "SOFTWARE\\WOW6432Node\\Dantom\\BYOND", "installpath", RRF_RT_ANY, nullptr, &val, &dataSize))
+        {
+            std::string strPath(val);
+            strPath.append("\\bin\\dreamseeker.exe");
+            patch((char*)strPath.c_str());
+        }
+        else if (std::filesystem::exists("C:\\Program Files (x86)\\byond\\bin\\dreamseeker.exe")) {
             patch((char*)"C:\\Program Files (x86)\\byond\\bin\\dreamseeker.exe");
         }
         else
